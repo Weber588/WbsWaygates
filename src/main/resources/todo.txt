@@ -1,0 +1,24 @@
+TODO:
+    Make Discoverable waygates spawn at villages sometimes (configurable)
+    Add cooldowns for use (configurable, mostly small)
+    Add "Warpstone" item with bow animation that can open your waygates from anywhere
+        Increased cost for travel?
+        Cost to open?
+    Make teleports not instant & cancel if you take damage
+        Maybe only from the warpstone item?
+        Maybe very short on waygates, and longer on warpstone?
+        Maybe time depends (logarithmically) on distance? So max 5 seconds, but instant within render distance?
+    Add cost system:
+        Cost can be based on:
+            Distance
+            Crossing worlds
+            Target chunk loaded
+        Costs can be:
+            Items
+            XP
+            Currency
+    Add some kind of "tier" or "attribute" system that controls if waygates are visible cross-world, or when unloaded
+        Currently, known waygates are always visible even in unloaded chunks
+    Add simpler particle configuration
+    Make titles have better timings for fading in & out
+    Add limitations like distance that can be extended using a different block like a repeater

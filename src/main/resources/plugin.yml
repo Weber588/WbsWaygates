@@ -1,0 +1,9 @@
+name: WbsWaygates
+version: 1.0
+api-version: 1.21
+main: wbs.waygates.WbsWaygates
+description: Use Waygates to breach into the Void Nexus, a dark void world that has a 1 to 32 block distance
+  ratio with the overworld. 
+load: STARTUP
+depend:
+  - WbsUtils

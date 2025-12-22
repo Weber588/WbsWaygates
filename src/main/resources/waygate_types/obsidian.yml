@@ -1,0 +1,120 @@
+item:
+  # What should the item actually be?
+  base-item: 'structure_void[damage_resistant={types:"#minecraft:is_fire"},rarity=epic,max_stack_size=1]'
+
+  # What should the name of the item be?
+  # Supports MiniMessage (https://webui.advntr.dev/)
+  name: "Waygate"
+
+  # If you want the item to look like something else, like a vanilla item or one defined by a resource pack, set it here
+  item-model: player_head
+  # If the model (or base item) is a player_head, what should the texture be?
+  player-head-texture: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMWFjZDQ3MzQ5NjQyNjQxM2VlYmI2NTIzZGVlNGEyZmMxN2MxOTJhYTMwMWQyMzQwNjcyY2FiYTI0OWMzZTRmNCJ9fX0=
+
+# What block should form the base of the platform when spawning into the nexus
+platform-base: minecraft:deepslate_bricks
+
+# This waygate shape design is provided by WaystonesPlus (https://github.com/SweetRazory/WaygatesPlus)
+blocks:
+  # You can have as many blocks as you like -- just name each section accordingly for clarity.
+  base:
+    block: polished_blackstone_slab
+    offset:
+      x: 0
+      y: 0
+      z: 0
+  middle:
+    block: respawn_anchor
+    offset:
+      x: 0
+      y: 1
+      z: 0
+  top:
+    block: light[level=12]
+    offset:
+      x: 0
+      y: 2
+      z: 0
+
+displays:
+  # You can have as many displays as you like -- just name each section accordingly for clarity.
+  cornice:
+    block: sculk
+    offset:
+      x: 0.075
+      y: 0.9
+      z: 0.075
+    scale:
+      x: 0.85
+      y: 0.85
+      z: 0.85
+  pillar:
+    block: obsidian
+    offset:
+      x: 0.2
+      y: 0.4
+      z: 0.2
+    scale:
+      x: 0.6
+      y: 0.6
+      z: 0.6
+  cap:
+    block: sculk
+    offset:
+      x: 0.075
+      y: 1.25
+      z: 0.075
+    scale:
+      x: 0.85
+      y: 0.85
+      z: 0.85
+
+# You can define particles a few different ways, from extremely simple to entirely configured
+
+# If you set the particle only, they will spawn with a low speed around the waygate
+#particles: 'enchantment_table'
+
+# If you want a bit more control, but still keeping it simple, you can use the below: (NOT IMPLEMENTED)
+#particles:
+#  particle: 'enchantment_table'
+#  speed: 0.1
+#  radius: 0.5
+#  spread:
+#    x: 0.5
+#    y: 1
+#    z: 0.5
+
+# For full control using the particle library in WbsUtils, use the below. I promise I'll document this... eventually. So far all I can do is https://github.com/Weber588/WbsUtils/wiki/Providers
+particles:
+  type: 'ring'
+  particle: 'reverse_portal'
+  amount: 3
+  force: false
+
+  offset:
+    x: 0
+    y: 0.5
+    z: 0
+
+  chance: 100
+
+  rotation:
+    cycle:
+      start: 0
+      end: 360
+      period: 250
+
+  direction:
+    x: 0
+    y: -1
+    z: 0
+
+  speed: 0.35
+  variation: 0
+
+  about:
+    x: 0
+    y: 1
+    z: 0
+
+  radius: 1

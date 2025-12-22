@@ -1,0 +1,23 @@
+{
+  "temperature_modifier": "frozen",
+  "creature_spawn_probability": 0,
+  "carvers": "minecraft:cave",
+  "downfall": 0,
+  "effects": {
+    "grass_color": 3355443,
+    "foliage_color": 2763306,
+    "dry_foliage_color": 4276545,
+    "grass_color_modifier": "none",
+    "fog_color": 0,
+    "music": [],
+    "music_volume": 1,
+    "sky_color": 0,
+    "water_color": 5677,
+    "water_fog_color": 0
+  },
+  "features": [],
+  "has_precipitation": false,
+  "spawn_costs": {},
+  "spawners": {},
+  "temperature": -1
+}
