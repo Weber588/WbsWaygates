@@ -1,28 +1,45 @@
 package wbs.waygates.world;
 
 import net.kyori.adventure.util.Ticks;
+import net.minecraft.core.Holder;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.protocol.game.ClientboundExplodePacket;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.phys.Vec3;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Lightable;
 import org.bukkit.block.data.Powerable;
 import org.bukkit.block.data.type.Candle;
+import org.bukkit.block.data.type.CopperBulb;
 import org.bukkit.block.data.type.Furnace;
-import org.bukkit.block.data.type.RedstoneWire;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
+import org.bukkit.craftbukkit.util.CraftLocation;
+import org.bukkit.craftbukkit.util.CraftVector;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
+import org.bukkit.entity.BlockDisplay;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.AxisAngle4f;
+import org.joml.Vector3f;
+import wbs.utils.util.WbsCollectionUtil;
 import wbs.utils.util.WbsMath;
 import wbs.waygates.WbsWaygates;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 public class WorldManager {
     private static final double PARTICLE_SPEED = 1;
@@ -52,6 +69,10 @@ public class WorldManager {
         return windDirection;
     }
 
+    public static Vector getItemPushVelocity() {
+        return WbsMath.scaleVector(getWindDirection(), 0.01);
+    }
+
     public static final String DIMENSION_NAME = "void_nexus";
     public static final @NotNull NamespacedKey DAMAGED_BY_DARKNESS = WbsWaygates.getKey("damaged_by_darkness");
 
@@ -72,7 +93,7 @@ public class WorldManager {
 
             @NotNull Collection<Item> items = world.getEntitiesByClass(Item.class);
 
-            Vector pushVelocity = WbsMath.scaleVector(getWindDirection(), 0.01);
+            Vector pushVelocity = getItemPushVelocity();
             items.forEach(item -> {
                 if (item.getVelocity().length() < 0.1) {
                     item.setVelocity(item.getVelocity().add(pushVelocity));
@@ -81,7 +102,10 @@ public class WorldManager {
 
             List<Player> players = world.getPlayers();
 
-//            Vector playerPushVelocity = pushVelocity.clone().setY(0);
+            Vector pushOffset = WbsMath.scaleVector(pushVelocity.clone().multiply(-1), 0.1);
+
+            Vec3 elytraPushVelocity = CraftVector.toVec3(pushVelocity);
+            Vec3 elytraPushVelocityGliding = CraftVector.toVec3(pushVelocity.clone().multiply(10));
 
             for (Player player : players) {
                 doVisualEffects(player);
@@ -91,12 +115,20 @@ public class WorldManager {
 
                 doLightChecks(player);
 
-//                if (player.getVelocity().length() < 0.1) {
-//                    ItemStack chestplate = player.getInventory().getChestplate();
-//                    if (chestplate != null && chestplate.getType().equals(Material.ELYTRA)) {
-//                        player.setVelocity(player.getVelocity().add(playerPushVelocity));
-//                    }
-//                }
+                if (player.getVelocity().length() < 0.1) {
+                    ItemStack chestplate = player.getInventory().getChestplate();
+                    if (chestplate != null && chestplate.getType().equals(Material.ELYTRA)) {
+                        // Use explosion packet to get delta movement sent to player, not just setting velocity
+                        ((CraftPlayer) player).getHandle().connection.send(
+                                new ClientboundExplodePacket(
+                                        CraftLocation.toVec3(player.getLocation().add(pushOffset)),
+                                        Optional.of(player.isGliding() ? elytraPushVelocityGliding : elytraPushVelocity),
+                                        ParticleTypes.MYCELIUM,
+                                        Holder.direct(new SoundEvent(ResourceLocation.parse("minecraft:empty"), Optional.empty()))
+                                )
+                        );
+                    }
+                }
             }
         }, 1, 1);
     }
@@ -202,11 +234,7 @@ public class WorldManager {
             return;
         }
 
-        int lightEmission = blockData.getLightEmission();
-        if (blockData instanceof RedstoneWire wire) {
-            lightEmission = wire.getLightEmission();
-        }
-        double chanceToBreak = lightEmission;
+        double chanceToBreak = blockData.getLightEmission();
         if (chanceToBreak <= 0) {
             return;
         }
@@ -232,26 +260,17 @@ public class WorldManager {
         World world = block.getWorld();
 
         if (blockData instanceof Lightable lightable) {
-            if (!(lightable instanceof Powerable) && !(lightable instanceof Furnace)) {
+            if (!(lightable instanceof Furnace)) {
                 lightable.setLit(false);
+                // Do once with physics to trigger changes around it, but then again without to bypass individual block physics
+                block.setBlockData(lightable, true);
                 block.setBlockData(lightable, false);
 
-                Sound sound = Sound.BLOCK_FIRE_EXTINGUISH;
-
-                if (blockData instanceof Candle) {
-                    sound = Sound.BLOCK_CANDLE_EXTINGUISH;
-                } else if (material == Material.REDSTONE_TORCH || material == Material.REDSTONE_WALL_TORCH) {
-                    sound = Sound.BLOCK_REDSTONE_TORCH_BURNOUT;
-                }
+                Sound sound = getSound(blockData, material);
 
                 world.playSound(block.getLocation().toCenterLocation(), sound, SoundCategory.BLOCKS, 1, 1);
                 return;
             }
-        }
-        if (blockData instanceof RedstoneWire wire) {
-            wire.setPower(0);
-            block.setBlockData(wire, false);
-            return;
         }
 
         if (material == Material.LAVA) {
@@ -273,5 +292,77 @@ public class WorldManager {
         }
 
         block.breakNaturally();
+    }
+
+    private static Sound getSound(BlockData blockData, Material material) {
+        Sound sound = Sound.BLOCK_FIRE_EXTINGUISH;
+
+        if (blockData instanceof Candle) {
+            sound = Sound.BLOCK_CANDLE_EXTINGUISH;
+        } else if (blockData instanceof CopperBulb) {
+            sound = Sound.BLOCK_COPPER_BULB_TURN_OFF;
+        } else if (blockData instanceof Powerable || material == Material.REDSTONE_TORCH || material == Material.REDSTONE_WALL_TORCH) {
+            sound = Sound.BLOCK_REDSTONE_TORCH_BURNOUT;
+        }
+        return sound;
+    }
+
+    public static void addFakeFog(@NotNull Player player) {
+        removeFakeFog(player);
+        WbsWaygates.getInstance().runLater(() -> {
+            if (isInWorld(player.getWorld())) {
+                createFakeFog(player);
+            }
+        }, 1);
+    }
+
+    private static void createFakeFog(@NotNull Player player) {
+        World world = player.getWorld();
+
+        for (int i = 0; i < 8; i++) {
+            float scale = 9 + i;
+
+            int finalI = i;
+            NamespacedKey playerKey = getPlayerKey(player);
+            Location spawnLoc = player.getLocation();
+            spawnLoc.setPitch(WbsCollectionUtil.getRandom(Set.of(-90, 0, 90)));
+            spawnLoc.setYaw(WbsCollectionUtil.getRandom(Set.of(0, 90, 180, 270)));
+            world.spawn(spawnLoc, BlockDisplay.class, display -> {
+                display.getPersistentDataContainer().set(playerKey, PersistentDataType.BOOLEAN, true);
+
+                Transformation transformation = new Transformation(
+                        new Vector3f(scale / 2, scale / 2, scale / 2),
+                        new AxisAngle4f(0, 0, 0, 0),
+                        new Vector3f(-scale, -scale, -scale),
+                        new AxisAngle4f(0, 0, 0, 0)
+                );
+
+                display.setTransformation(transformation);
+                display.setBlock(Material.BLACK_STAINED_GLASS.createBlockData());
+                if (finalI == 7) {
+                    display.setBlock(Material.BLACK_CONCRETE.createBlockData());
+                }
+                display.setBrightness(new Display.Brightness(0, 0));
+
+                display.setPersistent(false);
+                display.setVisibleByDefault(false);
+                player.showEntity(WbsWaygates.getInstance(), display);
+                player.addPassenger(display);
+            });
+        }
+    }
+
+    private static @NotNull NamespacedKey getPlayerKey(@NotNull Player player) {
+        return WbsWaygates.getKey("darkness_" + player.getUniqueId());
+    }
+
+    public static void removeFakeFog(@NotNull Player player) {
+        NamespacedKey playerKey = getPlayerKey(player);
+
+        Bukkit.getWorlds().forEach(world -> world.getEntitiesByClass(BlockDisplay.class).forEach(display -> {
+            if (display.getPersistentDataContainer().has(playerKey)) {
+                display.remove();
+            }
+        }));
     }
 }

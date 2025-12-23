@@ -45,7 +45,7 @@ public class WaygateType implements Keyed {
     public static final NamespacedKey WAYGATE_KEY = WbsWaygates.getKey("waygate");
     public static final NamespacedKey WAYGATE_TYPE_KEY = new NamespacedKey(WbsWaygates.getInstance(), "waygate_type");
     public static final NamespacedKey PARENT_WAYGATE = new NamespacedKey(WbsWaygates.getInstance(), "parent_waygate_block");
-    public static final double PLATFORM_RADIUS = 3.5;
+    public static final double PLATFORM_RADIUS = 2;
 
     private final NamespacedKey key;
 
@@ -294,14 +294,14 @@ public class WaygateType implements Keyed {
         } else if (remoteGateBase == null) {
             throw new IllegalStateException("remoteGateBase not provided when constructing in-dimension waygate!");
         } else {
-            Block platformCenter = baseBlock.getLocation().add(0, -1, 0).getBlock();
-            for (double x = platformCenter.getX() - PLATFORM_RADIUS; x <= platformCenter.getX() + PLATFORM_RADIUS; x++) {
-                for (double z = platformCenter.getZ() - PLATFORM_RADIUS; z <= platformCenter.getZ() + PLATFORM_RADIUS; z++) {
-                    if (Math.sqrt(x * x + z * z) > PLATFORM_RADIUS) {
+            Block platformCenter = baseBlock.getLocation().add(0.5, -1, 0.5).getBlock();
+            for (double x = -PLATFORM_RADIUS; x <= PLATFORM_RADIUS; x++) {
+                for (double z = -PLATFORM_RADIUS; z <= PLATFORM_RADIUS; z++) {
+                    if (Math.max(Math.abs(x), Math.abs(z)) > PLATFORM_RADIUS || (Math.abs(x) == PLATFORM_RADIUS && Math.abs(z) == PLATFORM_RADIUS)) {
                         continue;
                     }
 
-                    Block block = world.getBlockAt((int) x, platformCenter.getY(), (int) z);
+                    Block block = platformCenter.getLocation().add(x, 0, z).getBlock();
 
                     if (block.getType().isAir()) {
                         //noinspection DataFlowIssue,deprecation

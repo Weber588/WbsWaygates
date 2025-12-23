@@ -13,6 +13,7 @@ import wbs.utils.util.entities.WbsEntityUtil;
 import wbs.utils.util.particles.WbsParticleEffect;
 import wbs.waygates.WbsWaygates;
 import wbs.waygates.util.WaygateUtils;
+import wbs.waygates.world.WorldManager;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -103,6 +104,7 @@ public class Waygate {
     }
 
     public boolean triggerPlayerTeleport(Player player) {
+        WorldManager.removeFakeFog(player);
         Location previousLocation = WbsEntityUtil.getMiddleLocation(player);
 
         Location remoteLocation = WaygateType.getSpawnLocation(this.remoteGateBase);

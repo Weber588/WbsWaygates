@@ -2,7 +2,10 @@ package wbs.waygates.listeners;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.util.Ticks;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
@@ -11,9 +14,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.PortalCreateEvent;
-import org.bukkit.util.Vector;
 import wbs.waygates.WbsWaygates;
 import wbs.waygates.util.PersistentWaygateType;
 import wbs.waygates.world.WorldManager;
@@ -51,10 +55,8 @@ public class WorldListener implements Listener {
                 WorldManager.DAMAGED_BY_DARKNESS,
                 PersistentWaygateType.INTEGER
         );
-        WbsWaygates.getInstance().getLogger().info("damagedByDarknessTick: " + damagedByDarknessTick);
         if (damagedByDarknessTick != null) {
             int currentTick = Bukkit.getCurrentTick();
-            WbsWaygates.getInstance().getLogger().info("currentTick: " + currentTick);
             if (damagedByDarknessTick == currentTick || damagedByDarknessTick == currentTick - 1) {
                 event.deathMessage(Component.text(player.getName() + " was swallowed by darkness"));
             }
@@ -65,9 +67,7 @@ public class WorldListener implements Listener {
     public void onItemSpawn(ItemSpawnEvent event) {
         Item item = event.getEntity();
         if (WorldManager.isInWorld(item.getWorld())) {
-            Vector velocity = item.getVelocity();
-
-            item.setVelocity(WorldManager.getWindDirection().clone().setY(velocity.getY()));
+            item.setVelocity(item.getVelocity().add(WorldManager.getItemPushVelocity().multiply(5)));
         }
     }
 
@@ -90,6 +90,24 @@ public class WorldListener implements Listener {
                     }
                 }
             }
+        }
+    }
+
+    @EventHandler
+    public void onTeleport(PlayerTeleportEvent event) {
+        if (WorldManager.isInWorld(event.getTo().getWorld())) {
+            WorldManager.addFakeFog(event.getPlayer());
+        } else {
+            WorldManager.removeFakeFog(event.getPlayer());
+        }
+    }
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        if (WorldManager.isInWorld(event.getPlayer().getWorld())) {
+            WorldManager.addFakeFog(event.getPlayer());
+        } else {
+            WorldManager.removeFakeFog(event.getPlayer());
         }
     }
 }
