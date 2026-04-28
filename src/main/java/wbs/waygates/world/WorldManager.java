@@ -2,10 +2,12 @@ package wbs.waygates.world;
 
 import net.kyori.adventure.util.Ticks;
 import net.minecraft.core.Holder;
+import net.minecraft.core.particles.ExplosionParticleInfo;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.protocol.game.ClientboundExplodePacket;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.util.random.WeightedList;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -113,18 +115,21 @@ public class WorldManager {
                     damageInDarkness(player);
                 }
 
-                doLightChecks(player);
+                tryBreakingNearbyLights(player);
 
                 if (player.getVelocity().length() < 0.1) {
                     ItemStack chestplate = player.getInventory().getChestplate();
-                    if (chestplate != null && chestplate.getType().equals(Material.ELYTRA)) {
+                    if (chestplate.getType().equals(Material.ELYTRA)) {
                         // Use explosion packet to get delta movement sent to player, not just setting velocity
                         ((CraftPlayer) player).getHandle().connection.send(
                                 new ClientboundExplodePacket(
                                         CraftLocation.toVec3(player.getLocation().add(pushOffset)),
+                                        0,
+                                        0,
                                         Optional.of(player.isGliding() ? elytraPushVelocityGliding : elytraPushVelocity),
                                         ParticleTypes.MYCELIUM,
-                                        Holder.direct(new SoundEvent(ResourceLocation.parse("minecraft:empty"), Optional.empty()))
+                                        Holder.direct(new SoundEvent(Identifier.parse("minecraft:empty"), Optional.empty())),
+                                        WeightedList.<ExplosionParticleInfo>builder().build()
                                 )
                         );
                     }
@@ -133,7 +138,7 @@ public class WorldManager {
         }, 1, 1);
     }
 
-    private static void doLightChecks(Player player) {
+    private static void tryBreakingNearbyLights(Player player) {
         for (int i = 0; i < LIGHT_CHECKS_PER_TICK; i++) {
             double x = (Math.random() * 2 - 1) * LIGHT_CHECKS_RADIUS;
             double y = (Math.random() * 2 - 1) * LIGHT_CHECKS_RADIUS;
@@ -217,6 +222,7 @@ public class WorldManager {
         }
     }
 
+    // TODO: Make this whole thing configurable
     public static void tryBreakLight(Block block) {
         if (block.isEmpty()) {
             return;

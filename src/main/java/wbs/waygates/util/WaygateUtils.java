@@ -49,6 +49,7 @@ public class WaygateUtils {
         container.remove(WaygateType.PARENT_WAYGATE);
         WbsWaygates.getInstance().getLogger().warning("A waygate was registered to the chunk but was not in memory! ");
         WbsWaygates.getInstance().getLogger().warning(block.getLocation() + " -> " + waygateLocation);
+        BlockChunkStorageUtil.writeContainer(block, container);
     }
 
     public static Map<Block, Waygate> getChunkWaygates(@NotNull Chunk chunk) {

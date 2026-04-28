@@ -2,10 +2,12 @@ package wbs.waygates.data;
 
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
+import net.kyori.adventure.util.Ticks;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NullMarked;
@@ -20,7 +22,9 @@ import java.util.Map;
 
 @NullMarked
 public class Waygate {
+    private static final NamespacedKey LAST_USED_KEY = WbsWaygates.getKey("last_used_waygate");
     private static final Map<Block, Integer> PARTICLE_TASKS = new HashMap<>();
+    private static final long WAYGATE_COOLDOWN_MS = 5 * Ticks.SINGLE_TICK_DURATION_MS;
 
     private final Block baseBlock;
     private final WaygateType type;
@@ -39,19 +43,19 @@ public class Waygate {
         breakNaturally(null);
     }
     public void breakNaturally(@Nullable Player player) {
-        breakNaturally(player, true);
+        breakNaturally(player, true, player != null && player.getGameMode() != GameMode.CREATIVE);
     }
-    public void breakNaturally(@Nullable Player player, boolean breakOther) {
+    public void breakNaturally(@Nullable Player player, boolean breakOther, boolean dropItem) {
         stopParticles();
         remove();
-        if (player == null || player.getGameMode() != GameMode.CREATIVE) {
+        if (dropItem) {
             baseBlock.getWorld().dropItemNaturally(baseBlock.getLocation().toCenterLocation(), buildItem());
         }
 
         if (breakOther) {
             Waygate remoteWaygate = WaygateUtils.getWaygate(remoteGateBase);
             if (remoteWaygate != null) {
-                remoteWaygate.breakNaturally(player, false);
+                remoteWaygate.breakNaturally(player, false, false);
             } else {
                 WbsWaygates.getInstance().getLogger().warning("Remote waygate not found when breaking " + baseBlock + "! Remote: " + remoteGateBase);
             }
@@ -104,6 +108,10 @@ public class Waygate {
     }
 
     public boolean triggerPlayerTeleport(Player player) {
+        if (player.getPersistentDataContainer().getOrDefault(LAST_USED_KEY, PersistentDataType.LONG, 0L) >= System.currentTimeMillis() - WAYGATE_COOLDOWN_MS) {
+            return false;
+        }
+
         WorldManager.removeFakeFog(player);
         Location previousLocation = WbsEntityUtil.getMiddleLocation(player);
 
@@ -122,6 +130,8 @@ public class Waygate {
             newWorld.spawnParticle(Particle.DRAGON_BREATH, remoteLocation.clone().add(0, 1, 0), 25, 0.15, 0.15, 0.15, 0);
             newWorld.spawnParticle(Particle.WITCH, remoteLocation, 50, 0.6, 1, 0.6, 0);
             newWorld.playSound(tpSound, remoteLocation.x(), remoteLocation.y(), remoteLocation.z());
+
+            player.getPersistentDataContainer().set(LAST_USED_KEY, PersistentDataType.LONG, System.currentTimeMillis());
         }
 
         return successfulTeleport;

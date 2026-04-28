@@ -1,20 +1,53 @@
 {
+  "attributes": {
+    "minecraft:gameplay/can_start_raid": false,
+    "minecraft:gameplay/bed_rule": {
+      "can_sleep": "never",
+      "can_set_spawn": "never",
+      "explodes": false,
+      "error_message": {
+        "text": "The darkness watches you... You fear that sleeping may be a bad idea.",
+        "type": "text",
+        "color": "#ff1111",
+        "shadow_color": 0,
+        "bold": false,
+        "italic": false,
+        "underlined": false,
+        "strikethrough": false,
+        "obfuscated": false
+      }
+    },
+    "minecraft:gameplay/piglins_zombify": true,
+    "minecraft:gameplay/nether_portal_spawns_piglin": false,
+    "minecraft:gameplay/water_evaporates": true,
+    "minecraft:gameplay/respawn_anchor_works": false,
+    "minecraft:audio/background_music": {
+      "default": {
+        "sound": "minecraft:item.elytra.flying",
+        "min_delay": 0,
+        "max_delay": 0,
+        "replace_current_music": false
+      }
+    },
+    "minecraft:gameplay/can_pillager_patrol_spawn": false,
+    "minecraft:audio/firefly_bush_sounds": false,
+    "minecraft:visual/block_light_tint": 16777215,
+    "minecraft:visual/cloud_height": 32,
+    "minecraft:gameplay/sky_light_level": 0
+  },
+  "timelines": [],
+  "has_ender_dragon_fight": false,
   "ambient_light": 0,
-  "bed_works": false,
   "coordinate_scale": 32,
-  "effects": "minecraft:the_nether",
-  "fixed_time": 18000,
   "has_ceiling": true,
-  "has_raids": false,
   "has_skylight": false,
+  "has_fixed_time": true,
+  "skybox": "none",
+  "cardinal_light": "default",
   "height": 32,
   "infiniburn": "#minecraft:fire",
   "logical_height": 30,
   "min_y": 0,
   "monster_spawn_block_light_limit": 0,
-  "monster_spawn_light_level": 0,
-  "natural": false,
-  "piglin_safe": false,
-  "respawn_anchor_works": false,
-  "ultrawarm": false
+  "monster_spawn_light_level": 0
 }

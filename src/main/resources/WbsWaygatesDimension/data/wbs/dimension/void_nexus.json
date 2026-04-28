@@ -1,15 +1,15 @@
 {
-  "type": "wbs:void_nexus",
+  "type": "wbswaygates:void_nexus",
   "generator": {
     "type": "minecraft:flat",
     "settings": {
-      "biome": "wbs:void_nexus",
+      "biome": "wbswaygates:void_nexus",
       "lakes": false,
       "features": false,
       "layers": [
         {
           "height": 0,
-          "block": "minecraft:void_air"
+          "block": "minecraft:air"
         }
       ]
     }

@@ -1,23 +1,25 @@
 {
-  "temperature_modifier": "frozen",
-  "creature_spawn_probability": 0,
+  "attributes": {
+    "minecraft:visual/fog_color": 0,
+    "minecraft:visual/sky_color": 0,
+    "minecraft:visual/water_fog_color": 0,
+    "minecraft:visual/fog_end_distance": 8,
+    "minecraft:visual/fog_start_distance": 0.1,
+    "minecraft:visual/ambient_light_color": 0,
+    "minecraft:visual/cloud_color": 0
+  },
   "carvers": "minecraft:cave",
   "downfall": 0,
   "effects": {
-    "grass_color": 3355443,
-    "foliage_color": 2763306,
-    "dry_foliage_color": 4276545,
+    "grass_color": 0,
+    "foliage_color": 0,
+    "dry_foliage_color": 0,
     "grass_color_modifier": "none",
-    "fog_color": 0,
-    "music": [],
-    "music_volume": 1,
-    "sky_color": 0,
-    "water_color": 5677,
-    "water_fog_color": 0
+    "water_color": 0
   },
   "features": [],
   "has_precipitation": false,
   "spawn_costs": {},
   "spawners": {},
-  "temperature": -1
+  "temperature": 0
 }

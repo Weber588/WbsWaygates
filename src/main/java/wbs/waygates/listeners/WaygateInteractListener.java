@@ -31,7 +31,6 @@ public class WaygateInteractListener implements Listener {
 
             if (waygate != null) {
                 event.setCancelled(true);
-                // TODO: Warp player to the in between
                 waygate.triggerPlayerTeleport(player);
             }
         }

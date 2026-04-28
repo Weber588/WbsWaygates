@@ -8,6 +8,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityExplodeEvent;
@@ -24,6 +25,16 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class WaygateChangeListener implements Listener {
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onReplaceWaystoneBlock(BlockPlaceEvent event) {
+        Block block = event.getBlock();
+
+        Waygate waygate = WaygateUtils.getWaygate(block);
+        if (waygate != null) {
+            event.setCancelled(true);
+        }
+    }
+
     @EventHandler
     public void onWaygatePlace(BlockPlaceEvent event) {
         ItemStack heldItem = event.getItemInHand();

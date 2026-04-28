@@ -1,11 +1,9 @@
 package wbs.waygates.listeners;
 
+import com.destroystokyo.paper.event.block.BeaconEffectEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.util.Ticks;
-import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
@@ -18,11 +16,16 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.PortalCreateEvent;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import wbs.waygates.WbsWaygates;
 import wbs.waygates.util.PersistentWaygateType;
 import wbs.waygates.world.WorldManager;
 
 public class WorldListener implements Listener {
+
+    public static final NamespacedKey BEACON_IMMUNE_TO_FOG = WbsWaygates.getKey("beacon_immune_to_fog");
+
     @EventHandler
     public void onNetherLight(PortalCreateEvent event) {
         if (WorldManager.isInWorld(event.getWorld())) {
@@ -51,7 +54,8 @@ public class WorldListener implements Listener {
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         Player player = event.getPlayer();
-        Integer damagedByDarknessTick = player.getPersistentDataContainer().get(
+        PersistentDataContainer container = player.getPersistentDataContainer();
+        Integer damagedByDarknessTick = container.get(
                 WorldManager.DAMAGED_BY_DARKNESS,
                 PersistentWaygateType.INTEGER
         );
@@ -59,6 +63,7 @@ public class WorldListener implements Listener {
             int currentTick = Bukkit.getCurrentTick();
             if (damagedByDarknessTick == currentTick || damagedByDarknessTick == currentTick - 1) {
                 event.deathMessage(Component.text(player.getName() + " was swallowed by darkness"));
+                container.remove(WorldManager.DAMAGED_BY_DARKNESS);
             }
         }
     }
@@ -90,6 +95,27 @@ public class WorldListener implements Listener {
                     }
                 }
             }
+        }
+    }
+
+    @EventHandler
+    public void onBeaconEffect(BeaconEffectEvent event) {
+        Player player = event.getPlayer();
+        if (WorldManager.isInWorld(player.getWorld())) {
+            WorldManager.removeFakeFog(player);
+            int lastAppliedTick = Bukkit.getCurrentTick();
+            player.getPersistentDataContainer().set(BEACON_IMMUNE_TO_FOG, PersistentDataType.INTEGER, lastAppliedTick);
+
+            WbsWaygates.getInstance().runLater(() -> {
+                Player updatedPlayer = Bukkit.getPlayer(player.getUniqueId());
+                if (updatedPlayer != null && updatedPlayer.isOnline()) {
+                    Integer appliedTick = updatedPlayer.getPersistentDataContainer().get(BEACON_IMMUNE_TO_FOG, PersistentDataType.INTEGER);
+                    if (appliedTick != null && appliedTick == lastAppliedTick) {
+                        WorldManager.addFakeFog(updatedPlayer);
+                        updatedPlayer.getPersistentDataContainer().remove(BEACON_IMMUNE_TO_FOG);
+                    }
+                }
+            }, event.getEffect().getDuration());
         }
     }
 
