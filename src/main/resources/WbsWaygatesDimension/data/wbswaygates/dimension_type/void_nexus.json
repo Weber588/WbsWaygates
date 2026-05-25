@@ -8,7 +8,6 @@
       "error_message": {
         "text": "The darkness watches you... You fear that sleeping may be a bad idea.",
         "type": "text",
-        "color": "#ff1111",
         "shadow_color": 0,
         "bold": false,
         "italic": false,
@@ -19,7 +18,7 @@
     },
     "minecraft:gameplay/piglins_zombify": true,
     "minecraft:gameplay/nether_portal_spawns_piglin": false,
-    "minecraft:gameplay/water_evaporates": true,
+    "minecraft:gameplay/water_evaporates": false,
     "minecraft:gameplay/respawn_anchor_works": false,
     "minecraft:audio/background_music": {
       "default": {
@@ -32,7 +31,7 @@
     "minecraft:gameplay/can_pillager_patrol_spawn": false,
     "minecraft:audio/firefly_bush_sounds": false,
     "minecraft:visual/block_light_tint": 16777215,
-    "minecraft:visual/cloud_height": 32,
+    "minecraft:visual/cloud_height": 64,
     "minecraft:gameplay/sky_light_level": 0
   },
   "timelines": [],

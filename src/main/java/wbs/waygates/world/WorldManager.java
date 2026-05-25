@@ -28,6 +28,8 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -37,6 +39,7 @@ import org.joml.Vector3f;
 import wbs.utils.util.WbsCollectionUtil;
 import wbs.utils.util.WbsMath;
 import wbs.waygates.WbsWaygates;
+import wbs.waygates.listeners.WorldListener;
 
 import java.util.Collection;
 import java.util.List;
@@ -115,7 +118,7 @@ public class WorldManager {
                     damageInDarkness(player);
                 }
 
-                tryBreakingNearbyLights(player);
+                processNearbyBlocks(player);
 
                 if (player.getVelocity().length() < 0.1) {
                     ItemStack chestplate = player.getInventory().getChestplate();
@@ -138,19 +141,19 @@ public class WorldManager {
         }, 1, 1);
     }
 
-    private static void tryBreakingNearbyLights(Player player) {
+    private static void processNearbyBlocks(Player player) {
         for (int i = 0; i < LIGHT_CHECKS_PER_TICK; i++) {
             double x = (Math.random() * 2 - 1) * LIGHT_CHECKS_RADIUS;
             double y = (Math.random() * 2 - 1) * LIGHT_CHECKS_RADIUS;
             double z = (Math.random() * 2 - 1) * LIGHT_CHECKS_RADIUS;
             Location checkLocation = player.getLocation().add(x, y, z);
 
-            tryBreakLight(checkLocation.getBlock());
+            processDimensionEffects(checkLocation.getBlock());
         }
     }
 
     public static @Nullable World getWorld() {
-        World world = Bukkit.getWorld(new NamespacedKey("wbs", DIMENSION_NAME));
+        World world = Bukkit.getWorld(new NamespacedKey("wbswaygates", DIMENSION_NAME));
         if (world == null) {
             WbsWaygates.getInstance().getLogger().severe("Dimension not loaded!");
 
@@ -159,7 +162,7 @@ public class WorldManager {
         return world;
     }
 
-    public static boolean isInWorld(@NotNull World world) {
+    public static boolean isVoidNexus(@NotNull World world) {
         return world.key().value().equals(DIMENSION_NAME);
     }
 
@@ -209,7 +212,12 @@ public class WorldManager {
     }
 
     private static void damageInDarkness(Player player) {
-        byte lightLevel = player.getLocation().getBlock().getLightLevel();
+        Block block = player.getLocation().getBlock();
+        byte lightLevel = block.getLightLevel();
+
+        if (block.getBiome().equals(WorldListener.VOID_NEXUS_LIGHT_1)) {
+            lightLevel = (byte) (lightLevel * 1.5d);
+        }
 
         if (lightLevel > DARKNESS_DAMAGE_THRESHOLD) {
             return;
@@ -219,11 +227,11 @@ public class WorldManager {
             player.getPersistentDataContainer().set(DAMAGED_BY_DARKNESS, PersistentDataType.INTEGER, Bukkit.getCurrentTick());
             player.setNoDamageTicks(0);
             player.damage(1, DAMAGE_SOURCE);
+            addFakeWither(player, lightLevel * Ticks.TICKS_PER_SECOND);
         }
     }
 
-    // TODO: Make this whole thing configurable
-    public static void tryBreakLight(Block block) {
+    public static void processDimensionEffects(Block block) {
         if (block.isEmpty()) {
             return;
         }
@@ -240,9 +248,16 @@ public class WorldManager {
             return;
         }
 
+        if (processTransformations(block, material)) return;
+
+        if (processLightBreaking(block, blockData, material)) return;
+    }
+
+    // TODO: Make this whole thing configurable
+    private static boolean processLightBreaking(Block block, BlockData blockData, Material material) {
         double chanceToBreak = blockData.getLightEmission();
         if (chanceToBreak <= 0) {
-            return;
+            return false;
         }
         if (!material.isCollidable()) {
             chanceToBreak *= 5;
@@ -259,7 +274,26 @@ public class WorldManager {
 
         if (WbsMath.chance(chanceToBreak)) {
             breakLightSource(block, blockData, material);
+            return true;
         }
+
+        return false;
+    }
+
+    // TODO: Make this whole thing configurable
+    private static boolean processTransformations(Block block, Material material) {
+        Material transformTo = null;
+        String materialName = material.name().toLowerCase();
+        if (materialName.contains("moss")) {
+            transformTo = Material.getMaterial(materialName.replaceAll("moss", "pale_moss"));
+        }
+
+        if (transformTo != null && WbsMath.chance(10)) {
+            block.setType(transformTo);
+            return true;
+        }
+
+        return false;
     }
 
     private static void breakLightSource(Block block, BlockData blockData, Material material) {
@@ -313,16 +347,32 @@ public class WorldManager {
         return sound;
     }
 
+    public static void onEnterWorld(@NotNull Player player) {
+        addFakeFog(player);
+    }
+
+    private static void addFakeWither(@NotNull Player player, int duration) {
+        PotionEffect effect = new PotionEffect(PotionEffectType.WITHER, duration, 0, true, false, false);
+        player.sendPotionEffectChange(player, effect);
+    }
+
     public static void addFakeFog(@NotNull Player player) {
         removeFakeFog(player);
+        if (!WbsWaygates.getInstance().getSettings().isFakeFogEnabled()) {
+            return;
+        }
+
         WbsWaygates.getInstance().runLater(() -> {
-            if (isInWorld(player.getWorld())) {
+            if (isVoidNexus(player.getWorld())) {
                 createFakeFog(player);
             }
         }, 1);
     }
 
     private static void createFakeFog(@NotNull Player player) {
+        if (!WbsWaygates.getInstance().getSettings().isFakeFogEnabled()) {
+            return;
+        }
         World world = player.getWorld();
 
         for (int i = 0; i < 8; i++) {
@@ -360,6 +410,19 @@ public class WorldManager {
 
     private static @NotNull NamespacedKey getPlayerKey(@NotNull Player player) {
         return WbsWaygates.getKey("darkness_" + player.getUniqueId());
+    }
+
+    public static void onLeaveWorld(@NotNull Player player) {
+        removeFakeFog(player);
+    }
+
+    private static void removeFakeWither(@NotNull Player player) {
+        PotionEffect effect = new PotionEffect(PotionEffectType.WITHER, PotionEffect.INFINITE_DURATION, 0, true, false, false);
+        player.sendPotionEffectChangeRemove(player, PotionEffectType.WITHER);
+        PotionEffect realWitherEffect = player.getPotionEffect(PotionEffectType.WITHER);
+        if (realWitherEffect != null) {
+            player.sendPotionEffectChange(player, realWitherEffect);
+        }
     }
 
     public static void removeFakeFog(@NotNull Player player) {

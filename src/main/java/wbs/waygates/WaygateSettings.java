@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 import wbs.utils.exceptions.InvalidConfigurationException;
 import wbs.utils.util.plugin.WbsPlugin;
 import wbs.utils.util.plugin.WbsSettings;
@@ -17,9 +18,19 @@ public class WaygateSettings extends WbsSettings {
         super(plugin);
     }
 
+    private boolean fakeFogEnabled;
+    public boolean isFakeFogEnabled() {
+        return fakeFogEnabled;
+    }
+
     @Override
     public void reload() {
-        loadDefaultConfig("config.yml");
+        YamlConfiguration config = loadDefaultConfig("config.yml");
+
+        ConfigurationSection fakeFogSection = config.getConfigurationSection("fake-fog");
+        if (fakeFogSection != null) {
+            fakeFogEnabled = fakeFogSection.getBoolean("enabled");
+        }
 
         loadWaygateTypes();
     }

@@ -1,6 +1,8 @@
 {
   "pack": {
     "description": "void_nexus dimension for WbsWaygates",
-    "pack_format": 101
+    "pack_format": 101,
+    "min_format": 101,
+    "max_format": 103
   }
 }

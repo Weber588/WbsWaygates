@@ -37,7 +37,7 @@ public class WaygatesBootstrapSettings extends WbsBootstrapSettings<WbsWaygates>
         context.getLifecycleManager().registerEventHandler(LifecycleEvents.DATAPACK_DISCOVERY.newHandler(event -> {
             try {
                 // Retrieve the URI of the datapack folder.
-                URI uri = this.getClass().getResource(File.separator + waygateTypesFolderName).toURI();
+                URI uri = this.getClass().getResource('/' + waygateTypesFolderName).toURI();
                 // Discover the pack. The ID is set to "provided", which indicates to
                 // a server owner that your plugin includes this data pack.
                 event.registrar().discoverPack(uri, "provided");

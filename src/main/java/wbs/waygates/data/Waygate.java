@@ -122,12 +122,12 @@ public class Waygate {
             Sound tpSound = Sound.sound().type(Key.key("entity.enderman.teleport")).build();
 
             World prevWorld = previousLocation.getWorld();
-            prevWorld.spawnParticle(Particle.DRAGON_BREATH, previousLocation, 25, 0.15, 0.15, 0.15, 0);
+            prevWorld.spawnParticle(Particle.DRAGON_BREATH, previousLocation, 25, 0.15, 0.15, 0.15, 0, 1f);
             prevWorld.spawnParticle(Particle.WITCH, previousLocation, 250, 0.6, 1, 0.6, 0);
             prevWorld.playSound(tpSound, remoteLocation.x(), remoteLocation.y(), remoteLocation.z());
 
             World newWorld = remoteLocation.getWorld();
-            newWorld.spawnParticle(Particle.DRAGON_BREATH, remoteLocation.clone().add(0, 1, 0), 25, 0.15, 0.15, 0.15, 0);
+            newWorld.spawnParticle(Particle.DRAGON_BREATH, remoteLocation.clone().add(0, 1, 0), 25, 0.15, 0.15, 0.15, 0, 1f);
             newWorld.spawnParticle(Particle.WITCH, remoteLocation, 50, 0.6, 1, 0.6, 0);
             newWorld.playSound(tpSound, remoteLocation.x(), remoteLocation.y(), remoteLocation.z());
 

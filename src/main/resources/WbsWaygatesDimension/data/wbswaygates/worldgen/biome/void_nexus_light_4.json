@@ -1,0 +1,25 @@
+{
+  "attributes": {
+    "minecraft:visual/fog_color": "#282828",
+    "minecraft:visual/sky_color": 0,
+    "minecraft:visual/water_fog_color": "#0d0d0d",
+    "minecraft:visual/fog_end_distance": 40,
+    "minecraft:visual/fog_start_distance": 24,
+    "minecraft:visual/ambient_light_color": "#c0c0c0",
+    "minecraft:visual/cloud_color": 0
+  },
+  "carvers": "minecraft:cave",
+  "downfall": 0,
+  "effects": {
+    "grass_color": "#909090",
+    "foliage_color": "#909090",
+    "dry_foliage_color": "#909090",
+    "grass_color_modifier": "none",
+    "water_color": "#83839e"
+  },
+  "features": [],
+  "has_precipitation": false,
+  "spawn_costs": {},
+  "spawners": {},
+  "temperature": 0.5
+}

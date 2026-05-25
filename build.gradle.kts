@@ -1,5 +1,4 @@
 import xyz.jpenilla.resourcefactory.bukkit.BukkitPluginYaml
-import xyz.jpenilla.resourcefactory.bukkit.bukkitPluginYaml
 import xyz.jpenilla.resourcefactory.paper.PaperPluginYaml
 
 plugins {
@@ -36,8 +35,6 @@ repositories {
 
 dependencies {
     paperweight.paperDevBundle("26.1.2.build.+")
-    // paperweight.foliaDevBundle("1.21.8-R0.1-SNAPSHOT")
-    // paperweight.devBundle("com.example.paperfork", "1.21.8-R0.1-SNAPSHOT")
     implementation("io.github.Weber588:WbsUtils:1.0-SNAPSHOT")
     implementation("net.kyori:adventure-text-serializer-ansi:4.24.0")
 }
@@ -50,6 +47,11 @@ tasks {
     }
     javadoc {
         options.encoding = Charsets.UTF_8.name() // We want UTF-8 for everything
+    }
+    runServer {
+        pluginJars(
+            "C:\\IdeaProjects\\WbsUtils\\build\\libs\\WbsUtils-1.0-SNAPSHOT.jar"
+        )
     }
 
     // Only relevant for 1.20.4 or below, or when you care about supporting Spigot on >=1.20.5:

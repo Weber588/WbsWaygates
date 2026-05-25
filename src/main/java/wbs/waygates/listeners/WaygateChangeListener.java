@@ -105,7 +105,7 @@ public class WaygateChangeListener implements Listener {
         if (waygate != null) {
             event.setCancelled(true);
 
-            WorldManager.isInWorld(broken.getWorld());
+            WorldManager.isVoidNexus(broken.getWorld());
             waygate.breakNaturally(player);
         }
     }

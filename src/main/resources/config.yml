@@ -12,3 +12,9 @@ error-colour: 'c'
 
 # Error highlights
 error-highlight: '8'
+
+# When enabled, players will be forced to respect the fog by showing block displays to the player
+# to limit their view distance, instead of world fog which can often be disabled in video settings or via mods.
+fake-fog:
+  enabled: false
+  # TODO: Add more stuff here lol
