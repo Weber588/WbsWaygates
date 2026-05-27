@@ -15,6 +15,7 @@ import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ItemType;
+import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -23,6 +24,7 @@ import org.jspecify.annotations.NullMarked;
 import wbs.utils.exceptions.InvalidConfigurationException;
 import wbs.utils.util.WbsEnums;
 import wbs.utils.util.configuration.WbsConfigReader;
+import wbs.utils.util.configuration.WbsValueReader;
 import wbs.utils.util.particles.NormalParticleEffect;
 import wbs.utils.util.particles.WbsParticleEffect;
 import wbs.utils.util.persistent.BlockChunkStorageUtil;
@@ -35,9 +37,7 @@ import wbs.waygates.util.TransformationBuilder;
 import wbs.waygates.util.WaygateUtils;
 import wbs.waygates.world.WorldManager;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @SuppressWarnings("UnstableApiUsage")
 @NullMarked
@@ -105,6 +105,51 @@ public class WaygateType implements Keyed {
         item.editPersistentDataContainer(container -> container.set(WaygateType.WAYGATE_TYPE_KEY, WbsPersistentDataType.NAMESPACED_KEY, this.getKey()));
 
         platformBlockType = WbsConfigReader.getRegistryEntry(section, "platform-base", RegistryKey.BLOCK, platformBlockType);
+
+        ConfigurationSection recipeSection = section.getConfigurationSection("recipe");
+        if (recipeSection != null) {
+            String recipeDirectory = directory + "/recipe";
+            List<String> shape = recipeSection.getStringList("shape");
+
+            NamespacedKey recipeKey = new NamespacedKey(key.namespace(), key.value() + "_recipe");
+            ShapedRecipe recipe = new ShapedRecipe(recipeKey, item);
+
+            String[] shapeArray = shape.toArray(String[]::new);
+            if (shapeArray.length > 3) {
+                throw new InvalidConfigurationException("Recipe shape must have 3 or less rows.", recipeDirectory + "/shape");
+            }
+
+            recipe.shape(shapeArray);
+
+            ConfigurationSection ingredientsSection = recipeSection.getConfigurationSection("ingredients");
+
+            String ingredientsDirectory = recipeDirectory + "/ingredients";
+            if (ingredientsSection == null) {
+                throw new InvalidConfigurationException("Ingredients is a required field.", ingredientsDirectory);
+            }
+
+            Set<Character> chars = new HashSet<>();
+            for (String row : shape) {
+                for (char c : row.toCharArray()) {
+                    chars.add(c);
+                }
+            }
+            chars.remove(' ');
+
+            WbsValueReader reader = new WbsValueReader(ingredientsSection, "", ingredientsDirectory)
+                    .isRequired(true);
+
+            for (Character ingredientKey : chars) {
+                reader.updateKey(String.valueOf(ingredientKey));
+
+                ItemType itemType = reader.readRegistryEntry(RegistryKey.ITEM);
+
+                recipe.setIngredient(ingredientKey, itemType.createItemStack());
+            }
+
+            Bukkit.removeRecipe(recipeKey);
+            Bukkit.addRecipe(recipe, true);
+        }
 
         ConfigurationSection blocksSection = section.getConfigurationSection("blocks");
         if (blocksSection == null) {

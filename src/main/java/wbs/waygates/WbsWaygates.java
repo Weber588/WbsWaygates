@@ -5,10 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import wbs.utils.util.commands.brigadier.WbsCommand;
 import wbs.utils.util.plugin.WbsPlugin;
 import wbs.waygates.command.CommandWaygateGet;
-import wbs.waygates.listeners.WaygateChangeListener;
-import wbs.waygates.listeners.WaygateInteractListener;
-import wbs.waygates.listeners.WaygateLoadListener;
-import wbs.waygates.listeners.WorldListener;
+import wbs.waygates.listeners.*;
 import wbs.waygates.world.WorldManager;
 
 public class WbsWaygates extends WbsPlugin {
@@ -39,6 +36,7 @@ public class WbsWaygates extends WbsPlugin {
         registerListener(new WaygateInteractListener());
         registerListener(new WaygateLoadListener());
         registerListener(new WorldListener());
+        registerListener(new PlayerListener());
 
         WbsCommand.getStatic(this, "wbswaygates")
                 .addSubcommands(

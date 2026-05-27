@@ -10,6 +10,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.random.WeightedList;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.*;
+import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Lightable;
@@ -215,11 +216,25 @@ public class WorldManager {
         Block block = player.getLocation().getBlock();
         byte lightLevel = block.getLightLevel();
 
-        if (block.getBiome().equals(WorldListener.VOID_NEXUS_LIGHT_1)) {
-            lightLevel = (byte) (lightLevel * 1.5d);
+        Biome biome = block.getBiome();
+        if (biome.equals(WorldListener.VOID_NEXUS_LIGHT_4)) {
+            return;
         }
 
-        if (lightLevel > DARKNESS_DAMAGE_THRESHOLD) {
+        double biomeModifier = 1;
+        if (biome.equals(WorldListener.VOID_NEXUS_LIGHT_3)) {
+            biomeModifier = 3;
+        }
+
+        if (biome.equals(WorldListener.VOID_NEXUS_LIGHT_2)) {
+            biomeModifier = 2;
+        }
+
+        if (biome.equals(WorldListener.VOID_NEXUS_LIGHT_1)) {
+            biomeModifier = 1.5;
+        }
+
+        if ((lightLevel * biomeModifier) > DARKNESS_DAMAGE_THRESHOLD) {
             return;
         }
 
@@ -227,7 +242,7 @@ public class WorldManager {
             player.getPersistentDataContainer().set(DAMAGED_BY_DARKNESS, PersistentDataType.INTEGER, Bukkit.getCurrentTick());
             player.setNoDamageTicks(0);
             player.damage(1, DAMAGE_SOURCE);
-            addFakeWither(player, lightLevel * Ticks.TICKS_PER_SECOND);
+            addFakeWither(player, (DARKNESS_DAMAGE_THRESHOLD - lightLevel) * Ticks.TICKS_PER_SECOND);
         }
     }
 

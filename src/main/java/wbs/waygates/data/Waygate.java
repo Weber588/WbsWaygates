@@ -39,13 +39,13 @@ public class Waygate {
     public void remove() {
         type.remove(this);
     }
-    public void breakNaturally() {
-        breakNaturally(null);
+    public boolean breakNaturally() {
+        return breakNaturally(null);
     }
-    public void breakNaturally(@Nullable Player player) {
-        breakNaturally(player, true, player != null && player.getGameMode() != GameMode.CREATIVE);
+    public boolean breakNaturally(@Nullable Player player) {
+        return breakNaturally(player, true, player != null && player.getGameMode() != GameMode.CREATIVE);
     }
-    public void breakNaturally(@Nullable Player player, boolean breakOther, boolean dropItem) {
+    public boolean breakNaturally(@Nullable Player player, boolean breakOther, boolean dropItem) {
         stopParticles();
         remove();
         if (dropItem) {
@@ -60,6 +60,8 @@ public class Waygate {
                 WbsWaygates.getInstance().getLogger().warning("Remote waygate not found when breaking " + baseBlock + "! Remote: " + remoteGateBase);
             }
         }
+
+        return true;
     }
 
     public ItemStack buildItem() {

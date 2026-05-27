@@ -70,6 +70,7 @@ public class WaygateSettings extends WbsSettings {
                 successful++;
             } catch (InvalidConfigurationException ex) {
                 failed++;
+                logError(ex.getMessage(), ex.getDirectory());
             }
         }
 

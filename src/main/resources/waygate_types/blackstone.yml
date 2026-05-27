@@ -14,6 +14,17 @@ item:
 # What block should form the base of the platform when spawning into the nexus
 platform-base: minecraft:deepslate_bricks
 
+recipe:
+  shape:
+    - 'gsg'
+    - ' r '
+    - 'bbb'
+  ingredients:
+    g: 'minecraft:gilded_blackstone'
+    s: 'minecraft:nether_star'
+    r: 'minecraft:respawn_anchor'
+    b: 'minecraft:blackstone'
+
 # This waygate shape design is provided by WaystonesPlus (https://github.com/SweetRazory/WaygatesPlus)
 blocks:
   # You can have as many blocks as you like -- just name each section accordingly for clarity.
