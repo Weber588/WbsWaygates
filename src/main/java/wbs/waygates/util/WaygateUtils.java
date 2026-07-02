@@ -27,6 +27,12 @@ public class WaygateUtils {
             return null;
         }
 
+        if (waygateLocation.getWorld() == null) {
+            WbsWaygates.getInstance().getLogger().warning("A waygate had an invalid world UID! Did a migration occur?");
+            WbsWaygates.getInstance().getLogger().warning(WbsPersistentDataType.toString(container, WaygateType.PARENT_WAYGATE));
+            return null;
+        }
+
         if (!waygateLocation.equals(block.getLocation())) {
             Waygate waygate = getWaygate(waygateLocation.getBlock());
             if (waygate == null) {

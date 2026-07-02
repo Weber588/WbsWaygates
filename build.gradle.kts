@@ -35,7 +35,7 @@ repositories {
 
 dependencies {
     paperweight.paperDevBundle("26.1.2.build.+")
-    implementation("io.github.Weber588:WbsUtils:1.0-SNAPSHOT")
+    implementation("io.github.Weber588:WbsUtils:2.0-SNAPSHOT")
     implementation("net.kyori:adventure-text-serializer-ansi:4.24.0")
 }
 
