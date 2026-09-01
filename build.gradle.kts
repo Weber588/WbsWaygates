@@ -50,7 +50,7 @@ tasks {
     }
     runServer {
         pluginJars(
-            "C:\\IdeaProjects\\WbsUtils\\build\\libs\\WbsUtils-1.0-SNAPSHOT.jar"
+            "..\\WbsUtils\\build\\libs\\WbsUtils-1.0-SNAPSHOT.jar"
         )
     }
 

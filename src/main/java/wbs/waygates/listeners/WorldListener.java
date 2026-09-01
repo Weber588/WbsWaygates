@@ -30,6 +30,7 @@ import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import wbs.waygates.WbsWaygates;
 import wbs.waygates.util.PersistentWaygateType;
@@ -220,15 +221,46 @@ public class WorldListener implements Listener {
             return;
         }
 
+        if (center.getChunk().getLoadLevel() != Chunk.LoadLevel.ENTITY_TICKING) {
+            return;
+        }
+
         updateBiomeCyl(center, range, world);
     }
 
     private static void updateBiomeCyl(Location center, int range, World world) {
-        Set<Location> locations = getLocationCyl(center, range, world);
+        WbsWaygates.getInstance().getAsync(
+                () -> getLocationsToUpdate(center, range, world),
+                toUpdate -> updateChunks(world, toUpdate)
+        );
+    }
 
-        Map<Location, Beacon> closestBeacons = getClosestBeacons(world, locations);
-
+    private static void updateChunks(World world, Map<Location, Biome> toUpdate) {
         Set<Chunk> updatedChunks = new HashSet<>();
+        toUpdate.forEach((location, biome) -> {
+            for (int y = world.getMinHeight(); y < world.getMaxHeight(); y++) {
+                location.setY(y);
+                if (!world.getBiome(location).equals(biome)) {
+                    world.setBiome(location, biome);
+                    updatedChunks.add(location.getChunk());
+                }
+            }
+        });
+
+        // NMS start
+        List<ChunkAccess> accesses = updatedChunks.stream()
+                .map(updatedChunk -> ((CraftChunk) updatedChunk).getHandle(ChunkStatus.BIOMES))
+                .collect(Collectors.toCollection(LinkedList::new));
+
+        ((CraftWorld) world).getHandle().getChunkSource().chunkMap.resendBiomesForChunks(accesses);
+        // NMS end
+    }
+
+    private static @NonNull Map<Location, Biome> getLocationsToUpdate(Location center, int range, World world) {
+        Set<Location> locations = getLocationCyl(center, range, world);
+        Map<Location, Beacon> closestBeacons = getClosestBeacons(world, locations);
+        Map<Location, Biome> toUpdate = new HashMap<>();
+
         for (Location location : locations) {
             Beacon beacon = closestBeacons.get(location);
 
@@ -257,23 +289,11 @@ public class WorldListener implements Listener {
             }
 
             if (biome != null) {
-                for (int y = world.getMinHeight(); y < world.getMaxHeight(); y++) {
-                    location.setY(y);
-                    if (!world.getBiome(location).equals(biome)) {
-                        world.setBiome(location, biome);
-                        updatedChunks.add(location.getChunk());
-                    }
-                }
+                toUpdate.put(location, biome);
             }
         }
 
-        // NMS start
-        List<ChunkAccess> accesses = updatedChunks.stream()
-                .map(updatedChunk -> ((CraftChunk) updatedChunk).getHandle(ChunkStatus.BIOMES))
-                .collect(Collectors.toCollection(LinkedList::new));
-
-        ((CraftWorld) world).getHandle().getChunkSource().chunkMap.resendBiomesForChunks(accesses);
-        // NMS end
+        return toUpdate;
     }
 
     private static @NotNull Set<Location> getLocationCyl(Location center, int range, World world) {
@@ -294,7 +314,13 @@ public class WorldListener implements Listener {
     }
 
     private static @NotNull Map<Location, Beacon> getClosestBeacons(World world, Set<Location> locations) {
-        List<Chunk> sourceChunks = locations.stream().map(Location::getChunk).toList();
+        Set<Chunk> sourceChunks = new HashSet<>();
+        for (Location check : locations) {
+            if (check.isChunkLoaded()) {
+                Chunk location1Chunk = check.getChunk();
+                sourceChunks.add(location1Chunk);
+            }
+        }
 
         List<Chunk> nearbyChunks = Arrays.stream(world.getLoadedChunks())
                 .filter(check -> {
